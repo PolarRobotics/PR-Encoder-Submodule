@@ -1,5 +1,4 @@
 #include <Encoder.h>
-#include "pico/stdlib.h"
 #include "hardware/spi.h"
 
 #define rpmSingle
@@ -18,7 +17,6 @@ void printData(encoder_data_packet* data); // prototype for printing data
 #define SPI_CS_PIN 5
 
 void setup() {
-    stdio_init_all();
 
     // Initialize the SPI interface
     _spi_init(SPI_INSTANCE, SPI_BAUD_RATE);
@@ -31,8 +29,9 @@ void setup() {
 }
 
 void loop() {
+    uint8_t buffer[64];
     // Read data from the SPI interface
-    uint8_t data = spi_read_blocking(SPI_INSTANCE, NULL);
+    uint8_t data = spi_read_blocking(SPI_INSTANCE, NULL, buffer, 64);
 
     // Print the received data
     printf("Received: %d\n", data);
@@ -40,12 +39,7 @@ void loop() {
 
 
 void printData(encoder_data_packet* data){
-    Serial.print("encoder_ok: ");
-    Serial.print(data->encoder_ok);
-    Serial.print("  encoder_rpm: ");
-    Serial.print(data->encoder_rpm);
-    Serial.print("  encoder_num: ");
-    Serial.print(data->encoder_num);
-    Serial.print("  encoder_state: ");
-    Serial.println(data->encoder_state);
+    Serial.print("encoder_rpmOne: ");
+    Serial.println(data->encoder_rpmOne);
+    Serial.println("encoder_rpmTwo: " + data->encoder_rpmTwo);
 }

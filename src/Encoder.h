@@ -21,14 +21,11 @@
 // Define the UART port and buffer size
 #define BUF_SIZE (1024)
 
-// Define the data packet structure
+//Define the data packet structure
 struct encoder_data_packet {
-  int16_t encoder_rpm   : 16;
-  uint8_t encoder_ok    : 1;
-  uint8_t encoder_num   : 4;
-  uint8_t encoder_state : 2;
-  uint16_t filler       : 1;
-} __attribute__((packed));
+  int16_t encoder_rpmOne : 16;
+  int16_t encoder_rpmTwo : 16;
+}__attribute__((packed));
 
 /**
  * Encoder Class
