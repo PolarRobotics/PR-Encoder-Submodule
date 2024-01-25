@@ -1,80 +1,43 @@
 #include <Encoder.h>
+#include "pico/stdlib.h"
+#include "hardware/spi.h"
 
 #define rpmSingle
 
 // Object of HardwareSerial class to allow for uart communication
-HardwareSerial uart(2);
 
 // Function Prototype for printData
 void printData(encoder_data_packet* data); // prototype for printing data
 
+
+#define SPI_INSTANCE spi0
+#define SPI_BAUD_RATE 1000000
+#define SPI_SCK_PIN 2
+#define SPI_MISO_PIN 4
+#define SPI_MOSI_PIN 3
+#define SPI_CS_PIN 5
+
 void setup() {
-  // Initialize the serial  communication
-  Serial.begin(9600);
+    stdio_init_all();
 
-  // Initialize the UART communication
-  uart.begin(115200, SERIAL_8N1, RX2, TX2);
+    // Initialize the SPI interface
+    _spi_init(SPI_INSTANCE, SPI_BAUD_RATE);
+
+    // Set the SPI pins
+    gpio_set_function(SPI_SCK_PIN, GPIO_FUNC_SPI);
+    gpio_set_function(SPI_MISO_PIN, GPIO_FUNC_SPI);
+    gpio_set_function(SPI_MOSI_PIN, GPIO_FUNC_SPI);
+    gpio_set_function(SPI_CS_PIN, GPIO_FUNC_SPI);
 }
 
-#ifndef rpmSingle
-  //#define DEBUG
 void loop() {
+    // Read data from the SPI interface
+    uint8_t data = spi_read_blocking(SPI_INSTANCE, NULL);
 
-  int bufferSize = 3; // in bytes
-
-  // Check if there's data available to read
-  if (uart.available() >= bufferSize) {
-    // Read the data
-    uint8_t buffer[bufferSize];
-    int test = uart.readBytes(buffer, bufferSize);
-
-    // Combine the two bytes into a single 16-bit integer
-    uint16_t value = buffer[0] | (buffer[1] << 8);
-    // // Print the combined value
-    // Serial.println(value);
-  
-    // Cast the data to the structure
-    encoder_data_packet* data = (encoder_data_packet*)buffer;
-
-    // Print the data attributes
-    data->encoder_rpm = value;
-    printData(data);
-  }
-  
-  #ifdef DEBUG
-  else{
-    Serial.print("NO UART\n");
-  }
-  #endif 
+    // Print the received data
+    printf("Received: %d\n", data);
 }
-#endif
 
-
-#ifdef rpmSingle
-  //#define DEBUG
-void loop(){
-  int bufferSize = 2;
-
-  // Check if there's data available to read
-  if (uart.available() >= bufferSize) {
-  // Read the data
-  uint8_t buffer[bufferSize];
-  int test = uart.readBytes(buffer, bufferSize);
-
-  // Combine the two bytes into a single 16-bit integer
-  uint16_t value = buffer[0] | (buffer[1] << 8);
-
-  // Print the integer to serial monitor
-  Serial.println(value);
-  }
-
-  #ifdef DEBUG
-  else{
-    Serial.print("NO UART\n");
-  }
-  #endif
-}
-#endif
 
 void printData(encoder_data_packet* data){
     Serial.print("encoder_ok: ");
