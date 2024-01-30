@@ -1,8 +1,5 @@
 // #include <map>
-#include <HardwareSerial.h>
 #include <Arduino.h>
-#include <uart.h>
-#include "spi.h"
 
 // PIN DEFINITIONS
 // Referenced from: https://docs.google.com/spreadsheets/d/17pdff4T_3GTAkoctwm2IMg07Znoo-iJkyDGN5CqXq3w/edit#gid=0
@@ -19,10 +16,6 @@
 
 #define TX2 17 // UART
 #define RX2 12 // UART
-
-// Define the UART port and buffer size
-const uart_port_t uart_num = UART_NUM_2;
-#define BUF_SIZE (1024)
 
 // Define the data packet structure
 struct encoder_data_packet {
