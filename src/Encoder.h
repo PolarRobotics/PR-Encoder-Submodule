@@ -1,5 +1,6 @@
 // #include <map>
 #include <Arduino.h>
+#include <spi.h>
 
 // PIN DEFINITIONS
 // Referenced from: https://docs.google.com/spreadsheets/d/17pdff4T_3GTAkoctwm2IMg07Znoo-iJkyDGN5CqXq3w/edit#gid=0
@@ -19,12 +20,9 @@
 
 // Define the data packet structure
 struct encoder_data_packet {
-  int16_t encoder_rpm   : 16;
-  uint8_t encoder_ok    : 1;
-  uint8_t encoder_num   : 4;
-  uint8_t encoder_state : 2;
-  uint16_t filler       : 1;
-} __attribute__((packed));
+  int16_t encoder_rpmOne : 16;
+  int16_t encoder_rpmTwo : 16;
+}__attribute__((packed));
 
 /**
  * Encoder Class
