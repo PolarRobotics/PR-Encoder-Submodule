@@ -1,6 +1,6 @@
 #include <Arduino.h>
 // #include <map>
-#include <driver/uart.h>
+
 
 // PIN DEFINITIONS
 // Referenced from: https://docs.google.com/spreadsheets/d/17pdff4T_3GTAkoctwm2IMg07Znoo-iJkyDGN5CqXq3w/edit#gid=0
@@ -10,13 +10,6 @@
 #define ENC2_NAME "Right Motor"
 #define ENC2_CHA 36 // VP's GPIO #
 #define ENC2_CHB 39 // VN's GPIO #
-
-#define UART_TXD 17 // UART
-#define UART_RXD 16 // UART
-
-// Define the UART port and buffer size
-const uart_port_t uart_num = UART_NUM_2;
-#define BUF_SIZE (1024)
 
 class Encoder{
 private:
@@ -36,9 +29,10 @@ public:
     Encoder(int a_channel, int b_channel, String motorName);
     void initEncoder();
     void countEncoder();
-    void printSpeed();
+    int printSpeed();
     String getMotorName();
     int calcSpeed(int current_count);
+    void readEncoder(unsigned int gpio, unsigned int events);
 };
 
 // extern std::map<std:string, Encoder*> encoderMap;

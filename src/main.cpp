@@ -1,15 +1,21 @@
 #include <Arduino.h>
 #include "uart.h"
+#include "hardware/gpio.h"
 #include <Encoder.h>
 
-#define BYTES 255
+#define BYTES 4
 #define UART_TX_PIN 0
 #define UART_RX_PIN 1
-#define A_PIN 4
-#define B_PIN 5
+#define A_PIN 2
+#define B_PIN 3
 
 uint8_t data[BYTES];
 uint8_t recieved[BYTES];
+uint8_t encoder_data_a;
+uint8_t encoder_data_b;
+Encoder runningBack(A_PIN, B_PIN, "");
+int encoderSpeed;
+unsigned int name1, name2 = 1;
 
 void setup() {
   Serial.begin(9600);
@@ -17,21 +23,21 @@ void setup() {
   uart_init(uart0, 115200);
   gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
   gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
-  
+  runningBack.initEncoder();
 }
 
 
 void loop() {
-  for(int i = 0; i < BYTES; i++){
-    data[i] = i;
-  }
+  // for(int i = 0; i < BYTES; i++){
+  //   data[i] = i;
+  // }
+    runningBack.readEncoder(name1, name2);
+    for(int i = 0; i < BYTES; i++){
+      data[i] = runningBack.printSpeed();
+    }
 
-
-  while(1){
     uart_write_blocking(uart0, data, BYTES);
-    //uart_read_blocking(uart0, recieved, BYTES);
-
-  }
+  
   
 
 }

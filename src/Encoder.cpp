@@ -1,4 +1,7 @@
 #include <Encoder.h>
+#include "hardware/gpio.h"
+
+
 
 // Extern structures 
 // std::map<std:string, Encoder*> encoderMap;
@@ -19,24 +22,27 @@ Encoder::Encoder(int a_channel, int b_channel, String motorName){
     // encoderMap[motorName] = this;
 }
 
-void readEncoder(){
+ void Encoder::readEncoder(unsigned int gpio, unsigned int events) {
     if (currentEncoder != nullptr) {
         currentEncoder->countEncoder();
     }
 }
 
 void Encoder::initEncoder(){
-    pinMode(a_channel, INPUT_PULLUP);
-    pinMode(b_channel, INPUT);
+    _gpio_init(a_channel);
+    _gpio_init(b_channel);
+    gpio_set_dir(a_channel, GPIO_IN);
+    gpio_set_dir(b_channel, GPIO_IN);
 
     currentEncoder = this;
 
-    attachInterrupt(a_channel, readEncoder, RISING);
+    //attachInterrupt(a_channel, readEncoder, RISING);
+    gpio_set_irq_enabled_with_callback(a_channel, GPIO_IRQ_EDGE_RISE, true, (gpio_irq_callback_t) &Encoder::readEncoder);
 }
 
 void Encoder::countEncoder(){
 
-  b_channel_state = digitalRead(b_channel);
+  b_channel_state = gpio_get(b_channel);
 
   if (b_channel_state == 1) {
     if (encoderACount >= rollerover) {
@@ -78,4 +84,9 @@ int Encoder::calcSpeed(int current_count) {
 
 String Encoder::getMotorName(){
   return motorName;
+}
+
+int Encoder::printSpeed(){
+  return this->calcSpeed(this->encoderACount);
+
 }
