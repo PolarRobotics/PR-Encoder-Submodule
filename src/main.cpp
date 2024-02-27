@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include "uart.h"
+#include <Encoder.h>
 
 #define BYTES 255
 #define UART_TX_PIN 0
