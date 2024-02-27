@@ -1,15 +1,36 @@
 #include <Arduino.h>
+#include "uart.h"
 
-// the setup routine runs once when you press reset:
+#define BYTES 255
+#define UART_TX_PIN 0
+#define UART_RX_PIN 1
+#define A_PIN 4
+#define B_PIN 5
+
+uint8_t data[BYTES];
+uint8_t recieved[BYTES];
+
 void setup() {
-  // initialize the digital pin as an output.
-  pinMode(LED_BUILTIN, OUTPUT);
+  Serial.begin(9600);
+
+  uart_init(uart0, 115200);
+  gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
+  gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
+  
 }
 
-// the loop routine runs over and over again forever:
+
 void loop() {
-  digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
-  delay(1000);               // wait for a second
-  digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
-  delay(1000);               // wait for a second
+  for(int i = 0; i < BYTES; i++){
+    data[i] = i;
+  }
+
+
+  while(1){
+    uart_write_blocking(uart0, data, BYTES);
+    //uart_read_blocking(uart0, recieved, BYTES);
+
+  }
+  
+
 }
