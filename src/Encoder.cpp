@@ -22,40 +22,50 @@ Encoder::Encoder(int a_channel, int b_channel, String motorName){
     // encoderMap[motorName] = this;
 }
 
- void Encoder::readEncoder(unsigned int gpio, unsigned int events) {
-    if (currentEncoder != nullptr) {
+ void readEncoder(uint gpio, uint32_t events) {
+    Serial.println("Interrupt triggered");
+    //if (currentEncoder != nullptr) {
         currentEncoder->countEncoder();
-    }
+    //}
 }
 
 void Encoder::initEncoder(){
-    _gpio_init(a_channel);
-    _gpio_init(b_channel);
-    gpio_set_dir(a_channel, GPIO_IN);
-    gpio_set_dir(b_channel, GPIO_IN);
+    _gpio_init(this->a_channel);
+    _gpio_init(this->b_channel);
+    gpio_set_dir(this->a_channel, GPIO_IN);
+    gpio_set_dir(this->b_channel, GPIO_IN);
+    gpio_pull_up(this->a_channel);
 
     currentEncoder = this;
 
     //attachInterrupt(a_channel, readEncoder, RISING);
-    gpio_set_irq_enabled_with_callback(a_channel, GPIO_IRQ_EDGE_RISE, true, (gpio_irq_callback_t) &Encoder::readEncoder);
+    gpio_set_irq_enabled_with_callback(this->a_channel, GPIO_IRQ_EDGE_RISE, true, readEncoder);
 }
 
 void Encoder::countEncoder(){
 
-  b_channel_state = gpio_get(b_channel);
+  b_channel_state = gpio_get(this->b_channel);
 
   if (b_channel_state == 1) {
     if (encoderACount >= rollerover) {
       encoderACount = 0;
+      Serial.println("encoderACount = 0");
+      delay(100);
     } else {
       encoderACount = encoderACount + 1;
+      Serial.println("encoderACount incremented");
+      delay(100);
     }
       
   } else {
     if (encoderACount == 0) {
       encoderACount = rollerover;
+      Serial.println("encoderACount = rollerover");
+      delay(100);
     } else {
       encoderACount = encoderACount - 1;
+      Serial.println("encoderACount decremented");
+      delay(100);
     }
       
   }

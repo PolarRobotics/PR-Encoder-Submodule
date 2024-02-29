@@ -9,13 +9,13 @@
 #define A_PIN 2
 #define B_PIN 3
 
-uint8_t data[BYTES];
+uint8_t data[BYTES] = {0,0,0,0};
 uint8_t recieved[BYTES];
 uint8_t encoder_data_a;
 uint8_t encoder_data_b;
 Encoder runningBack(A_PIN, B_PIN, "");
 int encoderSpeed;
-unsigned int name1, name2 = 1;
+
 
 void setup() {
   Serial.begin(9600);
@@ -31,9 +31,11 @@ void loop() {
   // for(int i = 0; i < BYTES; i++){
   //   data[i] = i;
   // }
-    runningBack.readEncoder(name1, name2);
+    //runningBack.readEncoder(name1, name2);
     for(int i = 0; i < BYTES; i++){
       data[i] = runningBack.printSpeed();
+      Serial.println(runningBack.encoderACount);
+      delay(10);
     }
 
     uart_write_blocking(uart0, data, BYTES);

@@ -16,7 +16,6 @@ private:
     String motorName;
     int a_channel;
     int b_channel;
-    int encoderACount = 0;
     int rollerover = 2048;
     int b_channel_state = 0;
     int prev_current_count = 0;
@@ -30,13 +29,14 @@ public:
     void initEncoder();
     void countEncoder();
     int printSpeed();
+    int encoderACount = 0;
     String getMotorName();
     int calcSpeed(int current_count);
-    void readEncoder(unsigned int gpio, unsigned int events);
+    //void readEncoder(uint gpio, uint32_t events);
 };
 
 // extern std::map<std:string, Encoder*> encoderMap;
 extern Encoder* currentEncoder;
 
 // ISR for encoder interrupt
-void readEncoder();
+void readEncoder(uint gpio, uint32_t events);
