@@ -1,4 +1,3 @@
-#include <Arduino.h>
 #include "uart.h"
 #include "hardware/gpio.h"
 #include <Encoder.h>
@@ -16,6 +15,7 @@ uint8_t encoder_data_b;
 Encoder runningBack(A_PIN, B_PIN, "");
 int encoderSpeed;
 
+void readEncoder(uint gpio, uint32_t events);
 
 void setup() {
   Serial.begin(9600);
@@ -24,6 +24,8 @@ void setup() {
   gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
   gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
   runningBack.initEncoder();
+
+  gpio_set_irq_enabled_with_callback(A_PIN, GPIO_IRQ_EDGE_RISE, true, readEncoder);
 }
 
 
@@ -38,8 +40,19 @@ void loop() {
       delay(10);
     }
 
-    uart_write_blocking(uart0, data, BYTES);
+    //uart_write_blocking(uart0, data, BYTES);
   
   
 
+}
+
+void readEncoder(uint gpio, uint32_t events) {
+    while(true){
+      Serial.println("Interrupt triggered");
+    }
+    //if (currentEncoder != nullptr) {
+        //currentEncoder->countEncoder();
+    //}
+
+    Serial.println("0");
 }
