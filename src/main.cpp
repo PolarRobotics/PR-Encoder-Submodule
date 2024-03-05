@@ -14,6 +14,7 @@ uint8_t encoder_data_a;
 uint8_t encoder_data_b;
 Encoder runningBack(A_PIN, B_PIN, "");
 int encoderSpeed;
+uint8_t test = 0;
 
 void readEncoder(uint gpio, uint32_t events);
 
@@ -34,12 +35,13 @@ void loop() {
   //   data[i] = i;
   // }
     //runningBack.readEncoder(name1, name2);
-    for(int i = 0; i < BYTES; i++){
-      data[i] = runningBack.printSpeed();
-      Serial.println(runningBack.encoderACount);
-      delay(10);
-    }
+    // for(int i = 0; i < BYTES; i++){
+    //   data[i] = runningBack.printSpeed();
+       Serial.println(runningBack.encoderACount);
+    //   delay(10);
+    // }
 
+    //Serial.println(test);
     //uart_write_blocking(uart0, data, BYTES);
   
   
@@ -47,12 +49,5 @@ void loop() {
 }
 
 void readEncoder(uint gpio, uint32_t events) {
-    while(true){
-      Serial.println("Interrupt triggered");
-    }
-    //if (currentEncoder != nullptr) {
-        //currentEncoder->countEncoder();
-    //}
-
-    Serial.println("0");
+  runningBack.countEncoder();
 }

@@ -44,22 +44,22 @@ void Encoder::countEncoder(){
   if (b_channel_state != 0) {
     if (encoderACount >= rollerover) {
       encoderACount = 0;
-      Serial.println("encoderACount = 0");
+      
       //delay(100);
     } else {
       encoderACount = encoderACount + 1;
-      Serial.println("encoderACount incremented");
+      
       //delay(100);
     }
       
   } else {
     if (encoderACount == 0) {
       encoderACount = rollerover;
-      Serial.println("encoderACount = rollerover");
+      
       //delay(100);
     } else {
       encoderACount = encoderACount - 1;
-      Serial.println("encoderACount decremented");
+      
       //delay(100);
     }
       
