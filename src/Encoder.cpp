@@ -84,7 +84,7 @@ int Encoder::calcSpeed(int current_count) {
   prev_current_count = current_count;
   prev_current_time = current_time;
 
-  return omega*156.25f; // 156.25 for 384, 312.5 for 192, 1250 for 48
+  return omega * 60; // 156.25 for 384, 312.5 for 192, 1250 for 48
 }
 
 String Encoder::getMotorName(){

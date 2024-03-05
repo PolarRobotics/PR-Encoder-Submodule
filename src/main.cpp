@@ -37,8 +37,8 @@ void loop() {
     //runningBack.readEncoder(name1, name2);
     // for(int i = 0; i < BYTES; i++){
     //   data[i] = runningBack.printSpeed();
-       Serial.println(runningBack.encoderACount);
-    //   delay(10);
+       Serial.println(runningBack.printSpeed());
+       delay(10);
     // }
 
     //Serial.println(test);

@@ -16,10 +16,10 @@ private:
     String motorName;
     int a_channel;
     int b_channel;
-    int rollerover = 2048;
+    int rollerover = 10000;
     int b_channel_state = 0;
     int prev_current_count = 0;
-    int rolleroverthreshold = 500; //this is based on the fastest speed we expect, if the differace is going to be grater a rollover has likely accured
+    int rolleroverthreshold = 2000; //this is based on the fastest speed we expect, if the differace is going to be grater a rollover has likely accured
     unsigned long current_time = 0;
     unsigned long prev_current_time = 0; 
     float omega = 0;
