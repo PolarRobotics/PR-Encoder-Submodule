@@ -2,13 +2,13 @@
 #include "hardware/gpio.h"
 #include <Encoder.h>
 
-#define BYTES 4
+#define BYTES 2
 #define UART_TX_PIN 0
 #define UART_RX_PIN 1
 #define A_PIN 2
 #define B_PIN 3
 
-uint8_t data[BYTES] = {0,0,0,0};
+uint8_t data[BYTES] = {0,0};
 uint8_t recieved[BYTES];
 uint8_t encoder_data_a;
 uint8_t encoder_data_b;
@@ -31,18 +31,17 @@ void setup() {
 
 
 void loop() {
-  // for(int i = 0; i < BYTES; i++){
-  //   data[i] = i;
-  // }
-    //runningBack.readEncoder(name1, name2);
-    // for(int i = 0; i < BYTES; i++){
-    //   data[i] = runningBack.printSpeed();
-       Serial.println(runningBack.printSpeed());
-       delay(10);
-    // }
-
+    int speed = runningBack.printSpeed();
+    data[0] = speed & 0xFF; // Lower 8 bits
+    //Serial.println(data[0]);
+    data[1] = (speed >> 8) & 0xFF; // Upper 8 bits
+    delay(10);
+    
+    //Serial.println(data[1]);
+    Serial.println(speed);
+    
     //Serial.println(test);
-    //uart_write_blocking(uart0, data, BYTES);
+    uart_write_blocking(uart0, data, BYTES);
   
   
 
