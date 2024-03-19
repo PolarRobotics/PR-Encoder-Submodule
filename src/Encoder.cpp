@@ -5,7 +5,7 @@
 
 // Extern structures 
 // std::map<std:string, Encoder*> encoderMap;
-Encoder* currentEncoder = nullptr;
+// Encoder* currentEncoder = nullptr;
 
 /**
  * @brief Constructor for the Encoder class
@@ -31,7 +31,7 @@ void Encoder::initEncoder(){
     gpio_set_dir(this->b_channel, GPIO_IN);
     gpio_pull_up(this->a_channel);
 
-    currentEncoder = this;
+    // currentEncoder = this;
 
     //attachInterrupt(a_channel, readEncoder, RISING);
     
@@ -42,23 +42,23 @@ void Encoder::countEncoder(){
   b_channel_state = gpio_get(this->b_channel);
 
   if (b_channel_state != 0) {
-    if (encoderACount >= rollerover) {
-      encoderACount = 0;
+    if (this->encoderACount >= rollerover) {
+      this->encoderACount = 0;
       
       //delay(100);
     } else {
-      encoderACount = encoderACount + 1;
+      this->encoderACount = this->encoderACount + 1;
       
       //delay(100);
     }
       
   } else {
-    if (encoderACount == 0) {
-      encoderACount = rollerover;
+    if (this->encoderACount == 0) {
+      this->encoderACount = rollerover;
       
       //delay(100);
     } else {
-      encoderACount = encoderACount - 1;
+      this->encoderACount = this->encoderACount - 1;
       
       //delay(100);
     }
@@ -68,23 +68,23 @@ void Encoder::countEncoder(){
 
 int Encoder::calcSpeed(int current_count) {
   
-  current_time = millis();
+  this->current_time = millis();
   
   //first check if the curret count has rolled over
-  if (abs(current_count - prev_current_count) >= rolleroverthreshold) {
+  if (abs(current_count - this->prev_current_count) >= rolleroverthreshold) {
     if ((current_count-rolleroverthreshold)>0) {
-      omega = float ((current_count-rollerover)-prev_current_count)/(current_time-prev_current_time);
+      this->omega = float ((current_count-rollerover)- this->prev_current_count)/(this->current_time- this->prev_current_time);
     } else {
-      omega = float ((current_count+rollerover)-prev_current_count)/(current_time-prev_current_time);
+      this->omega = float ((current_count+rollerover)-this->prev_current_count)/(this->current_time- this->prev_current_time);
     }
   } else {
-    omega = float (current_count-prev_current_count)/(current_time-prev_current_time);
+    this->omega = float (current_count-this->prev_current_count)/(this->current_time-this->prev_current_time);
   }
 
-  prev_current_count = current_count;
-  prev_current_time = current_time;
+  this->prev_current_count = current_count;
+  this->prev_current_time = this->current_time;
 
-  return omega * 60; // 156.25 for 384, 312.5 for 192, 1250 for 48
+  return this->omega * 60; // 156.25 for 384, 312.5 for 192, 1250 for 48
 }
 
 String Encoder::getMotorName(){

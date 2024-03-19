@@ -27,16 +27,16 @@ private:
 public:
     Encoder(int a_channel, int b_channel, String motorName);
     void initEncoder();
+    int encoderACount = 0;
     void countEncoder();
     int printSpeed();
-    int encoderACount = 0;
     String getMotorName();
     int calcSpeed(int current_count);
     //void readEncoder(uint gpio, uint32_t events);
 };
 
 // extern std::map<std:string, Encoder*> encoderMap;
-extern Encoder* currentEncoder;
+// extern Encoder* currentEncoder;
 
 // ISR for encoder interrupt
-void readEncoder(uint gpio, uint32_t events);
+// void readEncoder(uint gpio, uint32_t events);
