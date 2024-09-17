@@ -1,35 +1,41 @@
 import time
+from rp2 import PIO, StateMachine, asm_pio
 import rp2
 from machine import Pin
 
-@rp2.asm_pio(set_init=(PIO.IN_HIGH, PIO.IN_HIGH))
+@rp2.asm_pio(set_init=(PIO.IN_HIGH, PIO.IN_HIGH), out_init=(PIO.OUT_HIGH, PIO.OUT_HIGH))
 def quadrature_encoder():
 
-# NEED TO LOOK AT LOGIC FOR THIS CODE
+# Binary value for each jump are the memory addresses that the instructions are located at.
+# i.e. 0000 is the first address in memory
+
+# *
+# Need to force the program to start at address 0, using nop() until there are 32 instructions :(
+# * 
 #     ; 00 state
-#     JMP update    ; read 00
-#     JMP decrement ; read 01
-#     JMP increment ; read 10
-#     JMP update    ; read 11
+     jmp('update')    # read 0000
+     jmp('decrement') # read 0001
+     jmp('increment') # read 0010
+     jmp('update')    # read 0011
 
 # ; 01 state
-#     JMP increment ; read 00
-#     JMP update    ; read 01
-#     JMP update    ; read 10
-#     JMP decrement ; read 11
+     jmp('increment') # read 0100
+     jmp('update')    # read 0101
+     jmp('update')    # read 0110
+     jmp('decrement') # read 0111
 
 # ; 10 state
-#     JMP decrement ; read 00
-#     JMP update    ; read 01
-#     JMP update    ; read 10
-#     JMP increment ; read 11
+     jmp('decrement') # read 1000
+     jmp('update')    # read 1001
+     jmp('update')    # read 1010
+     jmp('increment') # read 1011
 
 # ; to reduce code size, the last 2 states are implemented in place and become the
 # ; target for the other jumps
 
 # ; 11 state
-#     JMP update    ; read 00
-#     JMP increment ; read 01
+     jmp('update')    # read 1100
+     jmp('increment') # read 1101
 
 
     label("decrement")
@@ -64,3 +70,6 @@ def quadrature_encoder():
     wrap()
 
 
+sm1 = StateMachine(0, quadrature_encoder, freq=2000, set_base=Pin(1), out_base=Pin(1))
+
+sm1.irq(None, 1)
