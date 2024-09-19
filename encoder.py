@@ -13,31 +13,29 @@ def quadrature_encoder():
 # Need to force the program to start at address 0, using nop() until there are 32 instructions :(
 # * 
 #     ; 00 state
-     jmp('update')    # read 0000
-     jmp('decrement') # read 0001
-     jmp('increment') # read 0010
-     jmp('update')    # read 0011
+    jmp('update')    # read 0000
+    jmp('decrement') # read 0001
+    jmp('increment') # read 0010
+    jmp('update')    # read 0011
 
 # ; 01 state
-     jmp('increment') # read 0100
-     jmp('update')    # read 0101
-     jmp('update')    # read 0110
-     jmp('decrement') # read 0111
+    jmp('increment') # read 0100
+    jmp('update')    # read 0101
+    jmp('update')    # read 0110
+    jmp('decrement') # read 0111
 
 # ; 10 state
-     jmp('decrement') # read 1000
-     jmp('update')    # read 1001
-     jmp('update')    # read 1010
-     jmp('increment') # read 1011
+    jmp('decrement') # read 1000
+    jmp('update')    # read 1001
+    jmp('update')    # read 1010
+    jmp('increment') # read 1011
 
 # ; to reduce code size, the last 2 states are implemented in place and become the
 # ; target for the other jumps
 
 # ; 11 state
-     jmp('update')    # read 1100
-     jmp('increment') # read 1101
-
-
+    jmp('update')    # read 1100
+    jmp('increment') # read 1101
     label("decrement")
     jmp(y_dec, update)
     
@@ -49,7 +47,8 @@ def quadrature_encoder():
     push(noblock)
 
     label("sample_pins")
-# Move 2 bits from OSR to ISR, then from ISR to pins
+
+# Move 2 bits from OSR to ISR, then 2 bits from pins to ISR 
     out(isr, 2)
     in_(pins, 2)
 
@@ -69,7 +68,11 @@ def quadrature_encoder():
     mov(y, ~y)
     wrap()
 
+while True:
+    sm1 = StateMachine(0, quadrature_encoder, freq=2000, set_base=Pin(1), out_base=Pin(1))
 
-sm1 = StateMachine(0, quadrature_encoder, freq=2000, set_base=Pin(1), out_base=Pin(1))
+    # y_value = sm1.y
+    # print(f"Y Value: {y_value}")
+    # time.sleep_ms(10)
 
-sm1.irq(None, 1)
+    sm1.irq(None, 1)
