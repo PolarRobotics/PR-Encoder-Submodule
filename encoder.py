@@ -15,7 +15,7 @@ def quadrature_encoder():
 #     ; 00 state
     jmp('update')    # read 0000
     jmp('decrement') # read 0001
-    jmp('increment') # read 0010
+    jmp('increment') [20] # read 0010
     jmp('update')    # read 0011
 
 # ; 01 state
@@ -25,7 +25,7 @@ def quadrature_encoder():
     jmp('decrement') # read 0111
 
 # ; 10 state
-    jmp('decrement') # read 1000
+    jmp('decrement') [20] # read 1000 ( Seems to work for decrementing 9/23 )
     jmp('update')    # read 1001
     jmp('update')    # read 1010
     jmp('increment') # read 1011
@@ -36,8 +36,10 @@ def quadrature_encoder():
 # ; 11 state
     jmp('update')    # read 1100
     jmp('increment') # read 1101
+
+
     label("decrement")
-    jmp(y_dec, update)
+    jmp(y_dec, "update")
     
 # this is where the main loop starts
     wrap_target()
@@ -61,18 +63,28 @@ def quadrature_encoder():
 # There is no increment operator, so we have to 
 # negate, decrement, and then negate again.
     label("increment")
-    mov(y, ~y)
-    jmp(y_dec, increment_cont)
+    mov(y, invert(y))
+    jmp(y_dec, 'increment_cont')
 
     label("increment_cont")
-    mov(y, ~y)
+    mov(y, invert(y))
+    jmp('update')
+
     wrap()
+    nop()
+    nop()
+    nop()
+    nop()
+    nop()
+    nop()
+    nop()
 
 while True:
-    sm1 = StateMachine(0, quadrature_encoder, freq=2000, set_base=Pin(1), out_base=Pin(1))
+    sm1 = StateMachine(0, quadrature_encoder, freq=2000, set_base=Pin(1))
+    sm1.active(1)
+    print("test")
+    y_value = sm1.get()
+    print(f"Y Value: {y_value}")
+    time.sleep_ms(100)
 
-    # y_value = sm1.y
-    # print(f"Y Value: {y_value}")
-    # time.sleep_ms(10)
-
-    sm1.irq(None, 1)
+    #sm1.irq(None, 1)
