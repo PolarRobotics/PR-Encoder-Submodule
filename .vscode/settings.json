@@ -12,5 +12,6 @@
     ],
     "python.analysis.extraPaths": [
         "~/.micropico-stubs/included"
-    ]
+    ],
+    "cmake.ignoreCMakeListsMissing": true
 }
