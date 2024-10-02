@@ -79,14 +79,17 @@ def quadrature_encoder():
     nop()
     nop()
     nop()
+    nop()
 
 
-sm1 = StateMachine(0, quadrature_encoder, freq=2000, set_base=Pin(1))
+sm1 = StateMachine(0, quadrature_encoder, freq=2000, set_base=Pin(1), in_shiftdir=PIO.SHIFT_LEFT, out_shiftdir=PIO.SHIFT_RIGHT)
 sm1.active(1)
 while True:
     # y_value = sm1.get()
     # print((y_value))
+    
     print("Y Value:  %5d" % (sm1.get()))
+        
     time.sleep_ms(50)
 
     #sm1.irq(None, 1)
