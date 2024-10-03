@@ -19,24 +19,24 @@ def quadrature_encoder():
     jmp("update")    # read 0011
 
 # ; 01 state
-    jmp("increment") # read 0100
-    jmp("update")    # read 0101
-    jmp("update")    # read 0110
-    jmp("decrement") # read 0111
+    jmp("update") # read 0100
+    jmp("decrement") # read 0101
+    jmp("increment")    # read 0110
+    jmp("update") # read 0111
 
 # ; 10 state
-    jmp("decrement") # read 1000 ( Seems to work for decrementing 9/23 )
-    jmp("update")    # read 1001
-    jmp("update")    # read 1010
-    jmp("increment") # read 1011
+    jmp("update") # read 1000 ( Seems to work for decrementing 9/23 )
+    jmp("decrement")    # read 1001
+    jmp("increment") # read 1010
+    jmp("update") # read 1011
 
 # ; to reduce code size, the last 2 states are implemented in place and become the
 # ; target for the other jumps
 
 # ; 11 state
     jmp("update")    # read 1100
-    jmp("increment") # read 1101
-    jmp("decrement") # read 1110    
+    jmp("decrement") # read 1101
+    jmp("increment") # read 1110    
     jmp("update")    # read 1111
 
 
@@ -83,7 +83,7 @@ def quadrature_encoder():
     #nop()
 
 
-sm1 = StateMachine(0, quadrature_encoder, freq=2000, set_base=Pin(0), out_shiftdir=PIO.SHIFT_RIGHT, )
+sm1 = StateMachine(0, quadrature_encoder, freq=2000, set_base=Pin(0), in_shiftdir=PIO.SHIFT_LEFT, out_shiftdir=PIO.SHIFT_RIGHT)
 sm1.active(1)
 while True:
     # y_value = sm1.get()
