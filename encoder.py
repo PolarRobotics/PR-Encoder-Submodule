@@ -83,14 +83,14 @@ def quadrature_encoder():
     #nop()
 
 
-sm1 = StateMachine(0, quadrature_encoder, freq=2000, set_base=Pin(0), out_shiftdir=PIO.SHIFT_RIGHT, )
+sm1 = StateMachine(0, quadrature_encoder, set_base=Pin(0), out_shiftdir=PIO.SHIFT_RIGHT)
 sm1.exec("set(y,0)")
 sm1.active(1)
 while True:
     # y_value = sm1.get()
     # print((y_value))
     
-    print("Y Value:  %5d" % (sm1.get()))
+    print("Y Value:  %x" % (sm1.get()))
         
     time.sleep_ms(50)
 
