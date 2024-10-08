@@ -84,6 +84,7 @@ def quadrature_encoder():
 
 
 sm1 = StateMachine(0, quadrature_encoder, freq=2000, set_base=Pin(0), out_shiftdir=PIO.SHIFT_RIGHT, )
+sm1.exec("set(y,0)")
 sm1.active(1)
 while True:
     # y_value = sm1.get()
