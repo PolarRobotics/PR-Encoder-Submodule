@@ -5,10 +5,10 @@ from machine import Pin
 
 @rp2.asm_pio(set_init=(PIO.IN_HIGH, PIO.IN_HIGH), out_init=(PIO.OUT_HIGH, PIO.OUT_HIGH), sideset_init=(PIO.OUT_LOW))
 def led_blink():
-    jmp("turnon_led") # read 0000, keep led off 
-    jmp("off") # read 0001, keep led off 
+    jmp("turnon_led") # read 0000
+    jmp("off") # read 0001
     jmp("off") #read 0010
-    #jmp("turnon_led") #read 0011
+    jmp("off") #read 0011
     jmp("off") #read 0100
     jmp("off") #read 0101
     jmp("off") #read 0110
@@ -59,7 +59,7 @@ def led_blink():
     #nop()
     #nop()
     #nop()
-
+    
     wrap() # wrap
 
 sm1 = StateMachine(0, led_blink, freq=2000, set_base=Pin(0), out_shiftdir=PIO.SHIFT_RIGHT, sideset_base=Pin(25))
