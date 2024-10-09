@@ -61,7 +61,14 @@ def led_blink():
     #nop()
     wrap() # wrap
 
-sm1 = StateMachine(0, led_blink, set_base=Pin(0), out_shiftdir=PIO.SHIFT_RIGHT, sideset_base=Pin(25))
+sm1 = StateMachine(0, led_blink, set_base=Pin(0), freq=2000, out_shiftdir=PIO.SHIFT_RIGHT, sideset_base=Pin(25))
 sm1.active(1)
 while True:
-    print("PIN Values: %x" % (sm1.get()))
+    if(hex(sm1.get()) == "0xa"):
+            print("a")
+    if(hex(sm1.get()) == "0xf"):
+            print("f")
+    if(hex(sm1.get()) == "0x0"):
+            print("0")
+
+    #print("PIN Values: %x" % (sm1.get()))
