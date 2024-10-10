@@ -86,11 +86,16 @@ def quadrature_encoder():
 sm1 = StateMachine(0, quadrature_encoder, set_base=Pin(0), out_shiftdir=PIO.SHIFT_RIGHT)
 sm1.exec("set(y,0)")
 sm1.active(1)
+def to_signed_32bit(n):
+    n = n & 0xFFFFFFFF  # Limit to 32 bits
+    if n >= 0x80000000:  # Check if it's negative in 32-bit signed form
+        n -= 0x100000000
+    return n
 while True:
     # y_value = sm1.get()
     # print((y_value))
     
-    print("Y Value:  %x" % (sm1.get()))
+    print(to_signed_32bit(sm1.get()))
         
     time.sleep_ms(50)
 
