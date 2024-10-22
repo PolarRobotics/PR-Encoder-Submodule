@@ -82,8 +82,7 @@ def quadrature_encoder():
     nop()
     #nop()
 
-
-sm1 = StateMachine(0, quadrature_encoder, set_base=Pin(0), out_shiftdir=PIO.SHIFT_RIGHT)
+sm1 = StateMachine(0, quadrature_encoder, freq = 10000000, set_base=Pin(0), out_shiftdir=PIO.SHIFT_RIGHT)
 sm1.exec("set(y,0)")
 sm1.active(1)
 def to_signed_32bit(n):
@@ -91,12 +90,33 @@ def to_signed_32bit(n):
     if n >= 0x80000000:  # Check if it's negative in 32-bit signed form
         n -= 0x100000000
     return n
+def calcSpeed(curr, prev, prev_time):
+    rollover_threshold = 500
+    rollover = 4000 # Encoder Resolution * 4
+    omega = 0
+    current_time = time.time_ns()
+    if abs(curr - prev) >= rollover_threshold:
+        if (curr - rollover_threshold) > 0:
+            omega = float(((curr - rollover) - prev) / (current_time-prev_time))
+            print("Condition 1\n")
+        else:
+            omega = float(((curr + rollover) - prev) / (current_time-prev_time))
+            print("Condition 2\n")
+    else: 
+        omega = float((curr - prev) / (current_time - prev_time))
+        print("Condition 3\n")
+    prev_time = current_time
+    prev = curr
+    return prev, omega
+prev = 0
+prev_time = 0
 while True:
     # y_value = sm1.get()
     # print((y_value))
-    
-    print(to_signed_32bit(sm1.get()))
-        
+    count = to_signed_32bit(sm1.get())
+    prev, speed = calcSpeed(count, prev, prev_time)
+    print("Encoder Count: %d\n" % (count))
+    print("Speed: %f\n" % (speed))
     time.sleep_ms(50)
 
     #sm1.irq(None, 1)
