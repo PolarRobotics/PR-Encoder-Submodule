@@ -82,41 +82,46 @@ def quadrature_encoder():
     nop()
     #nop()
 
+
+# Setup the first state machine
 sm1 = StateMachine(0, quadrature_encoder, freq = 10000000, set_base=Pin(0), out_shiftdir=PIO.SHIFT_RIGHT)
-sm1.exec("set(y,0)")
-sm1.active(1)
+sm1.exec("mov(y,invert(null))")    # Start with a count of 0
+sm1.active(1)           # Start the state machince
+
+# Used to convert the unsigned count to a signed 32-bit number
 def to_signed_32bit(n):
     n = n & 0xFFFFFFFF  # Limit to 32 bits
     if n >= 0x80000000:  # Check if it's negative in 32-bit signed form
         n -= 0x100000000
     return n
+
+# Uses the encoder count to calculate the speed in rpm's
 def calcSpeed(curr, prev, prev_time):
-    rollover_threshold = 500
+    rollover_threshold = 10000  # Is not used for now, set to an arbitrary number so it is unused 10/30/24
     rollover = 4000 # Encoder Resolution * 4
     omega = 0
     current_time = time.time_ns()
     if abs(curr - prev) >= rollover_threshold:
         if (curr - rollover_threshold) > 0:
-            omega = float(((curr - rollover) - prev) / (current_time-prev_time))
+            omega = (float((curr - rollover) - prev) / float((current_time-prev_time)))
             print("Condition 1\n")
         else:
-            omega = float(((curr + rollover) - prev) / (current_time-prev_time))
+            omega = (float((curr + rollover) - prev) / float((current_time-prev_time)))
             print("Condition 2\n")
     else: 
-        omega = float((curr - prev) / (current_time - prev_time))
+        omega = float((curr - prev)) / float((current_time - prev_time))
         print("Condition 3\n")
     prev_time = current_time
     prev = curr
-    return prev, omega
+    omega = omega * 60000000        # Multiply omega by 60 / PPR * 1 Billion (nanoseconds to seconds)
+    return prev, omega, prev_time
 prev = 0
 prev_time = 0
+
+# Main loop
 while True:
-    # y_value = sm1.get()
-    # print((y_value))
-    count = to_signed_32bit(sm1.get())
-    prev, speed = calcSpeed(count, prev, prev_time)
+    count = to_signed_32bit(sm1.get())                          # Convert to signed
+    prev, speed, prev_time = calcSpeed(count, prev, prev_time)  # Calculate the speed
     print("Encoder Count: %d\n" % (count))
     print("Speed: %f\n" % (speed))
     time.sleep_ms(50)
-
-    #sm1.irq(None, 1)
