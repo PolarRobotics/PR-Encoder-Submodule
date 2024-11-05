@@ -113,7 +113,7 @@ def calcSpeed(curr, prev, prev_time):
         print("Condition 3\n")
     prev_time = current_time
     prev = curr
-    omega = omega * 60000000        # Multiply omega by 60 / PPR * 1 Billion (nanoseconds to seconds)
+    omega = omega * 15000000        # Multiply omega by 60 / PPR * 1 Billion (nanoseconds to seconds)
     return prev, omega, prev_time
 prev = 0
 prev_time = 0
