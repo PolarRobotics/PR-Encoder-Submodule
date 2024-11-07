@@ -3,7 +3,7 @@ from rp2 import PIO, StateMachine, asm_pio
 import rp2
 from machine import Pin
 
-@rp2.asm_pio(set_init=(PIO.IN_HIGH, PIO.IN_HIGH), out_init=(PIO.OUT_HIGH, PIO.OUT_HIGH))
+@rp2.asm_pio(set_init=(PIO.IN_HIGH, PIO.IN_HIGH, PIO.IN_HIGH, PIO.IN_HIGH), out_init=(PIO.OUT_HIGH, PIO.OUT_HIGH))
 def quadrature_encoder():
 
 # Binary value for each jump are the memory addresses that the instructions are located at.
@@ -75,6 +75,9 @@ def quadrature_encoder():
     mov(y, invert(y))
     jmp("update")
     wrap()
+
+    # nop instructions to set instruction count to 32 instructions 
+    # (THIS IS NECESSARY FOR THE CODE TO RUN CORRECTLY)
     nop()
     nop()
     nop()
@@ -84,44 +87,55 @@ def quadrature_encoder():
 
 
 # Setup the first state machine
-sm1 = StateMachine(0, quadrature_encoder, freq = 10000000, set_base=Pin(0), out_shiftdir=PIO.SHIFT_RIGHT)
-sm1.exec("mov(y,invert(null))")    # Start with a count of 0
-sm1.active(1)           # Start the state machince
+sm1 = StateMachine(0, quadrature_encoder, freq = 10000000, in_base=Pin(0), set_base=Pin(0), out_shiftdir=PIO.SHIFT_RIGHT)
+sm1.exec("set(y, 0)")              # Start with a count of 0
+sm1.active(1)                      # Start the state machince
+
+# Setup the second state machine
+sm2 = StateMachine(1, quadrature_encoder, freq = 10000000, in_base = Pin(2), set_base=Pin(2), out_shiftdir=PIO.SHIFT_RIGHT)
+sm2.exec("set(y, 0)")              # Start with a count of 0
+sm2.active(1)                      # Start the state machine
 
 # Used to convert the unsigned count to a signed 32-bit number
 def to_signed_32bit(n):
-    n = n & 0xFFFFFFFF  # Limit to 32 bits
+    n = n & 0xFFFFFFFF   # Limit to 32 bits
     if n >= 0x80000000:  # Check if it's negative in 32-bit signed form
         n -= 0x100000000
     return n
 
 # Uses the encoder count to calculate the speed in rpm's
 def calcSpeed(curr, prev, prev_time):
-    rollover_threshold = 10000  # Is not used for now, set to an arbitrary number so it is unused 10/30/24
-    rollover = 4000 # Encoder Resolution * 4
-    omega = 0
-    current_time = time.time_ns()
-    if abs(curr - prev) >= rollover_threshold:
-        if (curr - rollover_threshold) > 0:
-            omega = (float((curr - rollover) - prev) / float((current_time-prev_time)))
-            print("Condition 1\n")
-        else:
-            omega = (float((curr + rollover) - prev) / float((current_time-prev_time)))
-            print("Condition 2\n")
-    else: 
-        omega = float((curr - prev)) / float((current_time - prev_time))
-        print("Condition 3\n")
+    omega = 0                       # Set omega to 0
+    current_time = time.time_ns()   # Get current time
+
+    # Calculate omega using current and previous encoder counts, and current and previous time
+    omega = float((curr - prev)) / float((current_time - prev_time))
+
+    # After calculation, set previous values to the current for the next calculation
     prev_time = current_time
     prev = curr
+
     omega = omega * 15000000        # Multiply omega by 60 / PPR * 1 Billion (nanoseconds to seconds)
-    return prev, omega, prev_time
-prev = 0
-prev_time = 0
+    return prev, omega, prev_time   # Return previous values to be passed through calcSpeed along with the speed
+
+# Instantiate variables for previous count and time
+Enc1Prev = 0
+Enc2Prev = 0
+Enc1Prev_time = 0
+Enc2Prev_time = 0
 
 # Main loop
 while True:
-    count = to_signed_32bit(sm1.get())                          # Convert to signed
-    prev, speed, prev_time = calcSpeed(count, prev, prev_time)  # Calculate the speed
-    print("Encoder Count: %d\n" % (count))
-    print("Speed: %f\n" % (speed))
+    Enc1Count = to_signed_32bit(sm1.get())                          # Convert Encoder 1 count to signed
+    Enc2Count = to_signed_32bit(sm2.get())                          # Convert Encoder 2 count to signed
+    Enc1Prev, Enc1Speed, Enc1Prev_time = calcSpeed(Enc1Count, Enc1Prev, Enc1Prev_time)  # Calculate the speed from Encoder 1
+    Enc2Prev, Enc2Speed, Enc2Prev_time = calcSpeed(Enc2Count, Enc2Prev, Enc2Prev_time)  # Calcutate the speed from Encoder 2
+
+    # Print out data
+    print("-------------------------")
+    print("Encoder 1 Count: %d      " % (Enc1Count))
+    print("Encoder 2 Count: %d\n" % (Enc2Count))
+    print("Encoder 1 Speed: %f      " % (Enc1Speed))
+    print("Encoder 2 Speed: %f" % (Enc2Speed))
+    print("-------------------------\n")
     time.sleep_ms(50)
