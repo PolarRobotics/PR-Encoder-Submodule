@@ -63,26 +63,6 @@ def main():
     )
     print('Testing I2CResponder v' + i2c_responder.VERSION)
 
-    # -----------------
-    # Demonstrate that the Responder is responding at its assigned I2C address.
-    # -----------------
-    print('Scanning I2C Bus for Responders...')
-    responder_addresses = i2c_controller.scan()
-    print('I2C Addresses of Responders found: ' + format_hex(responder_addresses))
-    print()
-
-    # -----------------
-    # Demonstrate I2C WRITE
-    # -----------------
-    buffer_out = bytearray([0x01, 0x02])
-    print('Controller: Issuing I2C WRITE with data: ' + format_hex(buffer_out))
-    i2c_controller.writeto(RESPONDER_ADDRESS, buffer_out)
-    time.sleep(0.25)
-
-    print('   Responder: Getting I2C WRITE data...')
-    buffer_in = i2c_responder.get_write_data(max_size=len(buffer_out))
-    print('   Responder: Received I2C WRITE data: ' + format_hex(buffer_in))
-    print()
 
     # -----------------
     # Demonstrate I2C READ
@@ -95,32 +75,37 @@ def main():
     #   second Pico core, and THAT thread will execute the .readfrom().  That thread will block
     #   while this thread polls, then supplies the requested data.
     # -----------------
-    thread_lock = _thread.allocate_lock()
-    _thread.start_new_thread(thread_i2c_controller_read, (i2c_controller, thread_lock,))
-
+    # thread_lock = _thread.allocate_lock()
+    # _thread.start_new_thread(thread_i2c_controller_read, (i2c_controller, thread_lock))
+    while not i2c_responder.write_data_is_available():
+        pass
+    data = i2c_responder.get_write_data(max_size=1)
+    for i, value in enumerate(data):
+        READBUFFER[i] = value
+        print('Controller: Received I2C READ data: ' + format_hex(READBUFFER))
     buffer_out = bytearray([0x09, 0x08])
     for value in buffer_out:
         # We will loop here (polling) until the Controller (running on its own thread) issues an
         # I2C READ.
         while not i2c_responder.read_is_pending():
+            #print("No read instruction.")
             pass
         i2c_responder.put_read_data(value)
-        with thread_lock:
-            print('   Responder: Transmitted I2C READ data: ' + format_hex(value))
+        # with thread_lock:
+        print('   Responder: Transmitted I2C READ data: ' + format_hex(value))
     time.sleep(1)
-    print('Controller: Received I2C READ data: ' + format_hex(READBUFFER))
 
-def thread_i2c_controller_read(i2c_controller, thread_lock):
-    """Issue an I2C READ on the Controller."""
-    with thread_lock:
-        print('Controller: Initiating I2C READ...')
-    # NOTE: This operation will BLOCK until the Responder supplies the requested
-    #       data, which is why we are running it on a second thread (on the second
-    #       Pico core).
-    data = i2c_controller.readfrom(RESPONDER_ADDRESS, 2)
+# def thread_i2c_controller_read(i2c_controller, thread_lock):
+#     """Issue an I2C READ on the Controller."""
+#     with thread_lock:
+#         print('Controller: Initiating I2C READ...')
+#     # NOTE: This operation will BLOCK until the Responder supplies the requested
+#     #       data, which is why we are running it on a second thread (on the second
+#     #       Pico core).
+#     data = i2c_controller.readfrom(RESPONDER_ADDRESS, 2)
 
-    for i, value in enumerate(data):
-        READBUFFER[i] = value
+#     for i, value in enumerate(data):
+#         READBUFFER[i] = value
 
 
 def format_hex(_object):
