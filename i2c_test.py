@@ -77,23 +77,27 @@ def main():
     # -----------------
     # thread_lock = _thread.allocate_lock()
     # _thread.start_new_thread(thread_i2c_controller_read, (i2c_controller, thread_lock))
-    while not i2c_responder.write_data_is_available():
-        pass
-    data = i2c_responder.get_write_data(max_size=1)
-    for i, value in enumerate(data):
-        READBUFFER[i] = value
-        print('Controller: Received I2C READ data: ' + format_hex(READBUFFER))
-    buffer_out = bytearray([0x09, 0x08])
-    for value in buffer_out:
-        # We will loop here (polling) until the Controller (running on its own thread) issues an
-        # I2C READ.
-        while not i2c_responder.read_is_pending():
-            #print("No read instruction.")
+    while True:
+        print("Waiting for data to recieve...")
+        while not i2c_responder.write_data_is_available():
             pass
-        i2c_responder.put_read_data(value)
-        # with thread_lock:
-        print('   Responder: Transmitted I2C READ data: ' + format_hex(value))
-    time.sleep(1)
+        data = i2c_responder.get_write_data(max_size=2)
+        for i, value in enumerate(data):
+            READBUFFER[i] = value
+            print('Controller: Received I2C READ data: ' + format_hex(READBUFFER))
+        
+        buffer_out = bytearray([0x09])
+        print("Waiting for write instruction...")
+        while not i2c_responder.read_is_pending():
+                pass
+        for value in buffer_out:
+            # We will loop here (polling) until the Controller (running on its own thread) issues an
+            # I2C READ.
+            
+            i2c_responder.put_read_data(value)
+            # with thread_lock:
+            print('   Responder: Transmitted I2C READ data: ' + format_hex(value))
+        time.sleep(1)
 
 # def thread_i2c_controller_read(i2c_controller, thread_lock):
 #     """Issue an I2C READ on the Controller."""
