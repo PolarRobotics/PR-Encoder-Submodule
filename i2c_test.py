@@ -34,7 +34,7 @@ import _thread
 # Local
 from i2c_responder import I2CResponder
 
-I2C_FREQUENCY = 100000
+I2C_FREQUENCY = 400000
 
 CONTROLLER_I2C_DEVICE_ID = 1
 GPIO_CONTROLLER_SDA = 2
@@ -77,27 +77,27 @@ def main():
     # -----------------
     # thread_lock = _thread.allocate_lock()
     # _thread.start_new_thread(thread_i2c_controller_read, (i2c_controller, thread_lock))
+    buffer_out = bytearray([-30, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
     while True:
-        print("Waiting for data to recieve...")
-        while not i2c_responder.write_data_is_available():
-            pass
-        data = i2c_responder.get_write_data(max_size=2)
-        for i, value in enumerate(data):
-            READBUFFER[i] = value
-            print('Controller: Received I2C READ data: ' + format_hex(READBUFFER))
+        # print("Waiting for data to recieve...")
+        # while not i2c_responder.write_data_is_available():
+        #     pass
+        # data = i2c_responder.get_write_data(max_size=1)
+        # for i, value in enumerate(data):
+        #     READBUFFER[i] = value
+        #     print('Controller: Received I2C READ data: ' + format_hex(READBUFFER))
         
-        buffer_out = bytearray([0x09])
         print("Waiting for write instruction...")
-        while not i2c_responder.read_is_pending():
-                pass
-        for value in buffer_out:
             # We will loop here (polling) until the Controller (running on its own thread) issues an
             # I2C READ.
-            
-            i2c_responder.put_read_data(value)
+        if(i2c_responder.read_is_pending()):    
+            for value in buffer_out:
+                i2c_responder.put_read_data(value)
             # with thread_lock:
-            print('   Responder: Transmitted I2C READ data: ' + format_hex(value))
-        time.sleep(1)
+                print('   Responder: Transmitted I2C READ data: ' + format_hex(buffer_out))
+            buffer_out[0] += 1
+        #time.sleep_ms(100)
+        
 
 # def thread_i2c_controller_read(i2c_controller, thread_lock):
 #     """Issue an I2C READ on the Controller."""

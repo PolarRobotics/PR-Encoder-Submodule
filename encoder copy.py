@@ -1,7 +1,19 @@
 import time
 from rp2 import PIO, StateMachine, asm_pio
 import rp2
-from machine import Pin
+from machine import Pin, I2C
+import time
+import _thread
+
+# Local
+from i2c_responder import I2CResponder
+
+I2C_FREQUENCY = 400000
+
+RESPONDER_I2C_DEVICE_ID = 0
+RESPONDER_ADDRESS = 0x41
+GPIO_RESPONDER_SDA = 0
+GPIO_RESPONDER_SCL = 1
 
 @rp2.asm_pio(set_init=(PIO.IN_HIGH, PIO.IN_HIGH, PIO.IN_HIGH, PIO.IN_HIGH), out_init=(PIO.OUT_HIGH, PIO.OUT_HIGH))
 def quadrature_encoder():
@@ -87,12 +99,12 @@ def quadrature_encoder():
 
 
 # Setup the first state machine
-sm1 = StateMachine(0, quadrature_encoder, freq = 10000000, in_base=Pin(0), set_base=Pin(0), out_shiftdir=PIO.SHIFT_RIGHT)
+sm1 = StateMachine(0, quadrature_encoder, freq = 10000000, in_base=Pin(2), set_base=Pin(2), out_shiftdir=PIO.SHIFT_RIGHT)
 sm1.exec("set(y, 0)")              # Start with a count of 0
 sm1.active(1)                      # Start the state machince
 
 # Setup the second state machine
-sm2 = StateMachine(1, quadrature_encoder, freq = 10000000, in_base = Pin(2), set_base=Pin(2), out_shiftdir=PIO.SHIFT_RIGHT)
+sm2 = StateMachine(1, quadrature_encoder, freq = 10000000, in_base = Pin(4), set_base=Pin(4), out_shiftdir=PIO.SHIFT_RIGHT)
 sm2.exec("set(y, 0)")              # Start with a count of 0
 sm2.active(1)                      # Start the state machine
 
@@ -102,6 +114,20 @@ def to_signed_32bit(n):
     if n >= 0x80000000:  # Check if it's negative in 32-bit signed form
         n -= 0x100000000
     return n
+
+def format_hex(_object):
+    """Format a value or list of values as 2 digit hex."""
+    try:
+        values_hex = [to_hex(value) for value in _object]
+        return '[{}]'.format(', '.join(values_hex))
+    except TypeError:
+        # The object is a single value
+        return to_hex(_object)
+
+
+def to_hex(value):
+    return '0x{:02X}'.format(value)
+
 
 # Uses the encoder count to calculate the speed in rpm's
 def calcSpeed(curr, prev, prev_time):
@@ -127,16 +153,57 @@ Enc2Prev_time = 0
 # Main loop
 while True:
     Enc1Count = to_signed_32bit(sm1.get())                          # Convert Encoder 1 count to signed
-    Enc2Count = to_signed_32bit(sm2.get())                          # Convert Encoder 2 count to signed
+    #Enc2Count = to_signed_32bit(sm2.get())                          # Convert Encoder 2 count to signed
     Enc1Prev, Enc1Speed, Enc1Prev_time = calcSpeed(Enc1Count, Enc1Prev, Enc1Prev_time)  # Calculate the speed from Encoder 1
-    Enc2Prev, Enc2Speed, Enc2Prev_time = calcSpeed(Enc2Count, Enc2Prev, Enc2Prev_time)  # Calcutate the speed from Encoder 2
+    #Enc2Prev, Enc2Speed, Enc2Prev_time = calcSpeed(Enc2Count, Enc2Prev, Enc2Prev_time)  # Calcutate the speed from Encoder 2
 
     # Print out data
-    print("-------------------------")
-    print("Encoder 1 Count: %d      " % (Enc1Count))
-    print("Encoder 2 Count: %d\n" % (Enc2Count))
-    print("Encoder 1 Speed: %f      " % (Enc1Speed))
-    print("Encoder 2 Speed: %f" % (Enc2Speed))
-    print("-------------------------\n")
-    time.sleep_ms(50)
+    # print("-------------------------")
+    # print("Encoder 1 Count: %d      " % (Enc1Count))
+    # print("Encoder 2 Count: %d\n" % (Enc2Count))
+    # print("Encoder 1 Speed: %f      " % (Enc1Speed))
+    # print("Encoder 2 Speed: %f" % (Enc2Speed))
+    # print("-------------------------\n")
+    # -----------------
+    # Initialize Responder and Controller
+    # -----------------
+    i2c_responder = I2CResponder(
+        RESPONDER_I2C_DEVICE_ID, sda_gpio=GPIO_RESPONDER_SDA, scl_gpio=GPIO_RESPONDER_SCL, responder_address=RESPONDER_ADDRESS
+    )
+    #print('Testing I2CResponder v' + i2c_responder.VERSION)
+
+
+    # -----------------
+    # Demonstrate I2C READ
+    # -----------------
+    # NOTE: We want the Controller to initiate an I2C READ, but the Responder implementation
+    #   is polled.  As soon as we execute i2c_controller.readfrom() we will block
+    #   until the I2C bus supplies the requested data.  But we need to have executional
+    #   control so that we can poll i2c_responder.read_is_pending() and then supply the
+    #   requested data.  To circumvent the deadlock, we will briefly launch a thread on the
+    #   second Pico core, and THAT thread will execute the .readfrom().  That thread will block
+    #   while this thread polls, then supplies the requested data.
+    # -----------------
+    # thread_lock = _thread.allocate_lock()
+    # _thread.start_new_thread(thread_i2c_controller_read, (i2c_controller, thread_lock))
+    buffer_out = bytearray([Enc1Count, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+    
+    # print("Waiting for data to recieve...")
+    # while not i2c_responder.write_data_is_available():
+    #     pass
+    # data = i2c_responder.get_write_data(max_size=1)
+    # for i, value in enumerate(data):
+    #     READBUFFER[i] = value
+    #     print('Controller: Received I2C READ data: ' + format_hex(READBUFFER))
+    
+    print("Waiting for write instruction...")
+        # We will loop here (polling) until the Controller (running on its own thread) issues an
+        # I2C READ.
+    if(i2c_responder.read_is_pending()):    
+        for value in buffer_out:
+            i2c_responder.put_read_data(value)
+        # with thread_lock:
+            print('   Responder: Transmitted I2C READ data: ' + format_hex(buffer_out))
+        
+    #time.sleep_ms(100)
     
