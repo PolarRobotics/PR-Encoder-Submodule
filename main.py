@@ -370,7 +370,8 @@ while True:
     # -----------------
     # thread_lock = _thread.allocate_lock()
     # _thread.start_new_thread(thread_i2c_controller_read, (i2c_controller, thread_lock))
-    buffer_out = bytearray([Enc1Count, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+    bytes_val = Enc1Count.to_bytes(4,'big')
+    buffer_out = bytearray([bytes_val[0], bytes_val[1], bytes_val[2], bytes_val[3]])
     
     # print("Waiting for data to recieve...")
     # while not i2c_responder.write_data_is_available():

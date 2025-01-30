@@ -131,12 +131,15 @@ while True:
     Enc1Prev, Enc1Speed, Enc1Prev_time = calcSpeed(Enc1Count, Enc1Prev, Enc1Prev_time)  # Calculate the speed from Encoder 1
     Enc2Prev, Enc2Speed, Enc2Prev_time = calcSpeed(Enc2Count, Enc2Prev, Enc2Prev_time)  # Calcutate the speed from Encoder 2
 
+    bytes_value = Enc2Count.to_bytes(4,'big')
+    print(hex(bytes_value[3]))
+    print(bytes_value)
     # Print out data
-    print("-------------------------")
-    print("Encoder 1 Count: %d      " % (Enc1Count))
-    print("Encoder 2 Count: %d\n" % (Enc2Count))
-    print("Encoder 1 Speed: %f      " % (Enc1Speed))
-    print("Encoder 2 Speed: %f" % (Enc2Speed))
-    print("-------------------------\n")
+    # print("-------------------------")
+    # print("Encoder 1 Count: %d      " % (Enc1Count))
+    # print("Encoder 2 Count: %d\n" % (Enc2Count))
+    # print("Encoder 1 Speed: %f      " % (Enc1Speed))
+    # print("Encoder 2 Speed: %f" % (Enc2Speed))
+    # print("-------------------------\n")
     time.sleep_ms(50)
     
