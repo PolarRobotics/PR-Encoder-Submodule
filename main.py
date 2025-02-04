@@ -1,11 +1,7 @@
 import time
 from rp2 import PIO, StateMachine, asm_pio
-import rp2
-from machine import Pin, I2C
-import time
-import _thread
+from machine import Pin, I2C, mem32
 
-from machine import mem32
 
 led = Pin("LED", Pin.OUT)
 led.toggle()
@@ -370,8 +366,8 @@ while True:
     # -----------------
     # thread_lock = _thread.allocate_lock()
     # _thread.start_new_thread(thread_i2c_controller_read, (i2c_controller, thread_lock))
-    bytes_val = Enc1Count.to_bytes(4,'big')
-    buffer_out = bytearray([bytes_val[0], bytes_val[1], bytes_val[2], bytes_val[3]])
+    bytes_val = int(Enc1Speed).to_bytes(4,'big')
+    buffer_out = bytearray([0, bytes_val[0], bytes_val[1], bytes_val[2], bytes_val[3]])
     
     # print("Waiting for data to recieve...")
     # while not i2c_responder.write_data_is_available():
