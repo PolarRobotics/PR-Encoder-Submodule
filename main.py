@@ -2,6 +2,7 @@ import time
 import rp2
 from rp2 import PIO, StateMachine, asm_pio
 from machine import Pin, I2C, mem32
+import os
 
 
 led = Pin("LED", Pin.OUT)
@@ -195,6 +196,8 @@ RESPONDER_I2C_DEVICE_ID = 0
 RESPONDER_ADDRESS = 0x41
 GPIO_RESPONDER_SDA = 0
 GPIO_RESPONDER_SCL = 1
+CONTROLLER_SDA = 0
+CONTROLLER_SCL = 1
 
 @rp2.asm_pio(set_init=(PIO.IN_HIGH, PIO.IN_HIGH, PIO.IN_HIGH, PIO.IN_HIGH), out_init=(PIO.OUT_HIGH, PIO.OUT_HIGH))
 def quadrature_encoder():
@@ -350,13 +353,13 @@ while True:
     # -----------------
     # Initialize Responder and Controller
     # -----------------
-    i2c_responder = I2CResponder(
-        RESPONDER_I2C_DEVICE_ID, sda_gpio=GPIO_RESPONDER_SDA, scl_gpio=GPIO_RESPONDER_SCL, responder_address=RESPONDER_ADDRESS
-    )
-    i2c = I2C(0, scl=GPIO_RESPONDER_SCL, sda=GPIO_RESPONDER_SDA, freq=400000)
+    # i2c_responder = I2CResponder(
+    #     RESPONDER_I2C_DEVICE_ID, sda_gpio=GPIO_RESPONDER_SDA, scl_gpio=GPIO_RESPONDER_SCL, responder_address=RESPONDER_ADDRESS
+    # )
+    i2c = I2C(0, scl=GPIO_RESPONDER_SCL, sda=GPIO_RESPONDER_SDA, freq=100000)
     #print('Testing I2CResponder v' + i2c_responder.VERSION)
 
-
+    print(i2c.scan())
     # -----------------
     # Demonstrate I2C READ
     # -----------------
@@ -371,7 +374,7 @@ while True:
     # thread_lock = _thread.allocate_lock()
     # _thread.start_new_thread(thread_i2c_controller_read, (i2c_controller, thread_lock))
     bytes_val = int(Enc1Speed).to_bytes(4,'big')
-    buffer_out = bytearray([0,bytes_val[0], bytes_val[1], bytes_val[2], bytes_val[3]])
+    buffer_out = bytearray([bytes_val[0], bytes_val[1], bytes_val[2], bytes_val[3]])
     
     # print("Waiting for data to recieve...")
     # while not i2c_responder.write_data_is_available():
@@ -380,16 +383,30 @@ while True:
     # for i, value in enumerate(data):
     #     READBUFFER[i] = value
     #     print('Controller: Received I2C READ data: ' + format_hex(READBUFFER))
-    i2c.writeto(RESPONDER_ADDRESS, buffer_out)
+    max_retries = 10
+    retry_count = 0
+
+    while retry_count < max_retries:
+        try:
+            i2c.writeto(RESPONDER_ADDRESS, buffer_out)
+            break
+        except OSError as e:
+            if e.errno != 5:
+                raise
+            retry_count += 1
+            if retry_count == max_retries:
+                print(f"Max retries reached after {max_retries} attempts")
+                raise
+            time.sleep(0.1)
     
     print("Waiting for write instruction...")
         # We will loop here (polling) until the Controller (running on its own thread) issues an
         # I2C READ.
-    if(i2c_responder.read_is_pending()):    
-        for value in buffer_out:
-            i2c_responder.put_read_data(value)
-        # with thread_lock:
-            print('   Responder: Transmitted I2C READ data: ' + format_hex(buffer_out))
+    # if(i2c_responder.read_is_pending()):    
+    #     for value in buffer_out:
+    #         i2c_responder.put_read_data(value)
+    #     # with thread_lock:
+    #         print('   Responder: Transmitted I2C READ data: ' + format_hex(buffer_out))
         
     #time.sleep_ms(100)
     
