@@ -331,6 +331,8 @@ Enc2Prev = 0
 Enc1Prev_time = 0
 Enc2Prev_time = 0
 
+
+
 # Main loop
 while True:
     Enc1Count = to_signed_32bit(sm1.get())                          # Convert Encoder 1 count to signed
@@ -339,18 +341,19 @@ while True:
     #Enc2Prev, Enc2Speed, Enc2Prev_time = calcSpeed(Enc2Count, Enc2Prev, Enc2Prev_time)  # Calcutate the speed from Encoder 2
 
     # Print out data
-    # print("-------------------------")
-    # print("Encoder 1 Count: %d      " % (Enc1Count))
+    print("-------------------------")
+    print("Encoder 1 Count: %d      " % (Enc1Count))
     # print("Encoder 2 Count: %d\n" % (Enc2Count))
-    # print("Encoder 1 Speed: %f      " % (Enc1Speed))
+    print("Encoder 1 Speed: %f      " % (Enc1Speed))
     # print("Encoder 2 Speed: %f" % (Enc2Speed))
-    # print("-------------------------\n")
+    print("-------------------------\n")
     # -----------------
     # Initialize Responder and Controller
     # -----------------
     i2c_responder = I2CResponder(
         RESPONDER_I2C_DEVICE_ID, sda_gpio=GPIO_RESPONDER_SDA, scl_gpio=GPIO_RESPONDER_SCL, responder_address=RESPONDER_ADDRESS
     )
+    i2c = I2C(0, scl=GPIO_RESPONDER_SCL, sda=GPIO_RESPONDER_SDA, freq=400000)
     #print('Testing I2CResponder v' + i2c_responder.VERSION)
 
 
@@ -377,6 +380,7 @@ while True:
     # for i, value in enumerate(data):
     #     READBUFFER[i] = value
     #     print('Controller: Received I2C READ data: ' + format_hex(READBUFFER))
+    i2c.writeto(RESPONDER_ADDRESS, buffer_out)
     
     print("Waiting for write instruction...")
         # We will loop here (polling) until the Controller (running on its own thread) issues an
