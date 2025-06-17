@@ -283,14 +283,14 @@ def quadrature_encoder():
 
 
 # Setup the first state machine
-sm1 = StateMachine(0, quadrature_encoder, freq = 10000000, in_base=Pin(2), set_base=Pin(2), out_shiftdir=PIO.SHIFT_RIGHT)
+sm1 = StateMachine(0, quadrature_encoder, freq = 10000000, in_base=Pin(0), set_base=Pin(0), out_shiftdir=PIO.SHIFT_RIGHT)
 sm1.exec("set(y, 0)")              # Start with a count of 0
 sm1.active(1)                      # Start the state machince
 
 # Setup the second state machine
-# sm2 = StateMachine(1, quadrature_encoder, freq = 10000000, in_base = Pin(4), set_base=Pin(4), out_shiftdir=PIO.SHIFT_RIGHT)
-# sm2.exec("set(y, 0)")              # Start with a count of 0
-# sm2.active(1)                      # Start the state machine
+sm2 = StateMachine(1, quadrature_encoder, freq = 10000000, in_base = Pin(2), set_base=Pin(2), out_shiftdir=PIO.SHIFT_RIGHT)
+sm2.exec("set(y, 0)")              # Start with a count of 0
+sm2.active(1)                      # Start the state machine
 
 # Used to convert the unsigned count to a signed 32-bit number
 def to_signed_32bit(n):
@@ -339,16 +339,16 @@ uart = UART(1, baudrate=115200,tx=Pin(4), rx=Pin(5), bits=8, parity=None, stop=2
 # Main loop
 while True:
     Enc1Count = to_signed_32bit(sm1.get())                          # Convert Encoder 1 count to signed
-    #Enc2Count = to_signed_32bit(sm2.get())                          # Convert Encoder 2 count to signed
+    Enc2Count = to_signed_32bit(sm2.get())                          # Convert Encoder 2 count to signed
     Enc1Prev, Enc1Speed, Enc1Prev_time = calcSpeed(Enc1Count, Enc1Prev, Enc1Prev_time)  # Calculate the speed from Encoder 1
-    #Enc2Prev, Enc2Speed, Enc2Prev_time = calcSpeed(Enc2Count, Enc2Prev, Enc2Prev_time)  # Calcutate the speed from Encoder 2
+    Enc2Prev, Enc2Speed, Enc2Prev_time = calcSpeed(Enc2Count, Enc2Prev, Enc2Prev_time)  # Calcutate the speed from Encoder 2
 
     # Print out data
     print("-------------------------")
     print("Encoder 1 Count: %d      " % (Enc1Count))
-    # print("Encoder 2 Count: %d\n" % (Enc2Count))
+    print("Encoder 2 Count: %d\n" % (Enc2Count))
     print("Encoder 1 Speed: %f      " % (Enc1Speed))
-    # print("Encoder 2 Speed: %f" % (Enc2Speed))
+    print("Encoder 2 Speed: %f" % (Enc2Speed))
     print("-------------------------\n")
 
 
@@ -358,12 +358,14 @@ while True:
 
 
     bytes_val = int(Enc1Speed).to_bytes(4,'big')
-    buffer_out = bytearray([0x3c, bytes_val[0], 0x2c, bytes_val[1], 0x2c, bytes_val[2], 0x2c, bytes_val[3], 0x3e])
-    buff = "<%d,%d>" % (Enc1Count, Enc1Speed)
+    buffer_out = bytearray([0x3c, bytes_val[0], 0x2c, bytes_val[1], 0x2c, bytes_val[2], 0x2c, bytes_val[3], 0x3e]) # Not necessary for uart writing
+    buff = "<%d,%d,%d,%d>" % (Enc1Count, Enc1Speed, Enc2Count, Enc2Speed)
     
     if(uart.write(buff) == None):
         print("Buffer failed to write")
     else: print("Buffer sent")
+
+    time.sleep(0.005)
 
     # max_retries = 10
     # retry_count = 0
