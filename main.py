@@ -325,7 +325,7 @@ def calcSpeed(curr, prev, prev_time):
     prev_time = current_time
     prev = curr
 
-    omega = omega * 15000000        # Multiply omega by 60 / PPR * 1 Billion (nanoseconds to seconds)
+    omega = omega * 15000000        # Multiply omega by 60 / CPR * 1 Billion (nanoseconds to seconds)
     return prev, omega, prev_time   # Return previous values to be passed through calcSpeed along with the speed
 
 # Instantiate variables for previous count and time
